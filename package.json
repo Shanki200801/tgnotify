@@ -1,6 +1,6 @@
 {
   "name": "tgnotify",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Telegram alerts and button approvals for any project. Zero runtime dependencies.",
   "license": "MIT",
   "type": "module",

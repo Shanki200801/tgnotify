@@ -111,3 +111,9 @@ test("latest tap per message wins", async () => {
   stub.updates = [cb(1, 42, 300, "tg:abcd:0", "Approve"), cb(2, 42, 300, "tg:abcd:1", "Skip")];
   assert.deepEqual((await client().collect(300)).map((a) => a.choice), ["Skip"]);
 });
+
+test("trims whitespace in secrets", async () => {
+  const c = new tg.Client({ token: "SECRET\n", chat_id: " 42\n", api_base: base });
+  await c.send("hi");
+  assert.equal(stub.bodies.at(-1).chat_id, "42");
+});

@@ -18,7 +18,7 @@ import (
 	"github.com/shanki200801/tgnotify"
 )
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 const usage = `tgnotify - Telegram alerts from anywhere
 

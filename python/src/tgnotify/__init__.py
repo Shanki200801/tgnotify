@@ -27,7 +27,7 @@ __all__ = [
     "notify", "send_file", "ask", "prompt", "collect", "load_config", "save_config",
     "format_message", "split_text", "escape_html",
 ]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 DEFAULT_API_BASE = "https://api.telegram.org"
 MAX_TEXT = 4000
@@ -78,8 +78,8 @@ def load_config() -> dict:
             cfg = json.loads(p.read_text())
         except ValueError as e:
             raise TgNotifyError(f"bad config {p}: {e}") from None
-    cfg["token"] = _env("TGNOTIFY_TOKEN", "TELEGRAM_BOT_TOKEN") or cfg.get("token", "")
-    cfg["chat_id"] = str(_env("TGNOTIFY_CHAT_ID", "TELEGRAM_CHAT_ID") or cfg.get("chat_id", ""))
+    cfg["token"] = (_env("TGNOTIFY_TOKEN", "TELEGRAM_BOT_TOKEN") or cfg.get("token", "")).strip()
+    cfg["chat_id"] = str(_env("TGNOTIFY_CHAT_ID", "TELEGRAM_CHAT_ID") or cfg.get("chat_id", "")).strip()
     cfg["api_base"] = os.environ.get("TGNOTIFY_API_BASE") or cfg.get("api_base") or DEFAULT_API_BASE
     if not cfg["token"] or not cfg["chat_id"]:
         raise TgNotifyError(
@@ -213,12 +213,17 @@ class Client:
             cfg = load_config()
             token, chat_id = token or cfg["token"], chat_id or cfg["chat_id"]
             api_base = api_base or cfg["api_base"]
-        self.token = token
-        self.chat_id = str(chat_id)
+        self.token = str(token).strip()  # secrets often carry a trailing newline
+        self.chat_id = str(chat_id).strip()
         self.api_base = (api_base or os.environ.get("TGNOTIFY_API_BASE") or DEFAULT_API_BASE).rstrip("/")
 
     def _redact(self, msg: str) -> str:
-        return msg.replace(self.token, "<token>") if self.token else msg
+        if not self.token:
+            return msg
+        # also cover escaped forms, e.g. errors that repr() the URL
+        for form in {self.token, repr(self.token)[1:-1], self.token.encode("unicode_escape").decode()}:
+            msg = msg.replace(form, "<token>")
+        return msg
 
     def call(self, method: str, params: Optional[dict] = None, *, _body: Optional[bytes] = None,
              _ctype: str = "application/json", timeout: float = 70) -> Any:
@@ -234,8 +239,8 @@ class Client:
                     resp = json.loads(e.read())
                 except ValueError:
                     raise TgNotifyError(f"{method}: HTTP {e.code}") from None
-            except (urllib.error.URLError, OSError) as e:
-                raise TgNotifyError(self._redact(f"{method}: {e}")) from None
+            except Exception as e:  # never let a URL (with the token) escape unredacted
+                raise TgNotifyError(self._redact(f"{method}: {type(e).__name__}: {e}")) from None
             if resp.get("ok"):
                 return resp.get("result")
             code = resp.get("error_code")

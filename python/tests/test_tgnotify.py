@@ -119,3 +119,18 @@ def test_latest_tap_wins(env):
     stub, c = env
     stub.updates = [cb(1, 42, 300, "tg:abcd:0", "Approve"), cb(2, 42, 300, "tg:abcd:1", "Skip")]
     assert [a.choice for a in c.collect(300)] == ["Skip"]
+
+
+def test_whitespace_in_secrets_is_stripped(env):
+    stub, c = env
+    c2 = tgnotify.Client("SECRET\n", " 42\n", c.api_base)
+    c2.send("hi")
+    assert stub.bodies[-1]["chat_id"] == "42"
+
+
+def test_invalid_url_error_is_redacted():
+    c = tgnotify.Client("SEC RET", 1, "http://127.0.0.1:1")
+    c.token = "SEC\nRET"  # force an InvalidURL (control char) path
+    with pytest.raises(tgnotify.TgNotifyError) as e:
+        c.send("hi")
+    assert "SEC" not in str(e.value)

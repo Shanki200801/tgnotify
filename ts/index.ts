@@ -60,8 +60,8 @@ export function loadConfig(): Config {
     catch (e) { throw new TgNotifyError(`bad config ${p}: ${(e as Error).message}`); }
   }
   const cfg: Config = {
-    token: env("TGNOTIFY_TOKEN", "TELEGRAM_BOT_TOKEN") || file.token || "",
-    chat_id: String(env("TGNOTIFY_CHAT_ID", "TELEGRAM_CHAT_ID") || file.chat_id || ""),
+    token: (env("TGNOTIFY_TOKEN", "TELEGRAM_BOT_TOKEN") || file.token || "").trim(),
+    chat_id: String(env("TGNOTIFY_CHAT_ID", "TELEGRAM_CHAT_ID") || file.chat_id || "").trim(),
     api_base: env("TGNOTIFY_API_BASE") || file.api_base || DEFAULT_API_BASE,
   };
   if (!cfg.token || !cfg.chat_id) {
@@ -158,8 +158,8 @@ export class Client {
 
   constructor(cfg?: Partial<Config>) {
     const c = cfg?.token && cfg?.chat_id ? (cfg as Config) : { ...loadConfig(), ...cfg };
-    this.token = c.token;
-    this.chatId = String(c.chat_id);
+    this.token = String(c.token).trim(); // secrets often carry a trailing newline
+    this.chatId = String(c.chat_id).trim();
     this.apiBase = (c.api_base || env("TGNOTIFY_API_BASE") || DEFAULT_API_BASE).replace(/\/+$/, "");
   }
 

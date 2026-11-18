@@ -96,6 +96,7 @@ func LoadConfig() (Config, error) {
 	if c.APIBase == "" {
 		c.APIBase = DefaultAPIBase
 	}
+	c.Token, c.ChatID = strings.TrimSpace(c.Token), strings.TrimSpace(c.ChatID)
 	if c.Token == "" || c.ChatID == "" {
 		return c, fmt.Errorf("tgnotify: not configured; run `tgnotify setup` or set TGNOTIFY_TOKEN and TGNOTIFY_CHAT_ID")
 	}
@@ -136,6 +137,7 @@ func New() (*Client, error) {
 
 // NewWithConfig returns a client for an explicit config.
 func NewWithConfig(c Config) *Client {
+	c.Token, c.ChatID = strings.TrimSpace(c.Token), strings.TrimSpace(c.ChatID)
 	if c.APIBase == "" {
 		c.APIBase = DefaultAPIBase
 	}
@@ -146,7 +148,9 @@ func (c *Client) redact(err error) error {
 	if err == nil || c.Token == "" {
 		return err
 	}
-	return errors.New(strings.ReplaceAll(err.Error(), c.Token, "<token>"))
+	msg := strings.ReplaceAll(err.Error(), c.Token, "<token>")
+	q := strconv.Quote(c.Token) // errors may print the URL quoted/escaped
+	return errors.New(strings.ReplaceAll(msg, q[1:len(q)-1], "<token>"))
 }
 
 type apiResp struct {

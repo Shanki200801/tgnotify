@@ -191,3 +191,14 @@ func TestLatestTapWins(t *testing.T) {
 		t.Fatalf("got=%+v err=%v", got, err)
 	}
 }
+
+func TestTrimsSecrets(t *testing.T) {
+	s, c := setup(t)
+	c2 := NewWithConfig(Config{Token: "SECRET\n", ChatID: " 42\n", APIBase: c.APIBase})
+	if _, err := c2.Send(context.Background(), "hi", Options{}); err != nil {
+		t.Fatal(err)
+	}
+	if s.bodies[len(s.bodies)-1]["chat_id"] != "42" {
+		t.Fatalf("chat_id not trimmed: %v", s.bodies[len(s.bodies)-1]["chat_id"])
+	}
+}
