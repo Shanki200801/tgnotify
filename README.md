@@ -85,7 +85,7 @@ answers, _ := c.Collect(ctx, id)
 
 ## Recipes
 
-- **[Telegram one-time-code login](docs/telegram-login.md):** protect a personal web app with a code sent to your Telegram. Covers the security model, a Cloudflare Worker reference, a Python port and a test checklist.
+- **[Telegram one-time-code login](docs/telegram-login.md):** protect a personal web app with a code sent to your Telegram. Ships as a toolkit: `tgnotify/login` (TypeScript, Node 19+ and Cloudflare Workers) and `tgnotify.login` (Python, stdlib only). Covers the security model, usage for Workers, Node, Flask and a test checklist. Go is not covered.
 
 ## Contract (shared by all implementations)
 
