@@ -83,6 +83,10 @@ answers, _ := c.Collect(ctx, id)
 - In prompt→collect mode, nothing confirms a tap until the next `collect` runs, so the buttons stay live until then. If someone taps more than once, the **latest** tap per message wins.
 - The state file is shared by every project on the machine, so always pass message ids to `collect`. Called with no ids, it takes every project's answers.
 
+## Recipes
+
+- **[Telegram one-time-code login](docs/telegram-login.md):** protect a personal web app with a code sent to your Telegram. Covers the security model, a Cloudflare Worker reference, a Python port and a test checklist.
+
 ## Contract (shared by all implementations)
 
 | | |
