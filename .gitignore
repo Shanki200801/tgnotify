@@ -1,0 +1,9 @@
+node_modules/
+__pycache__/
+*.egg-info/
+.venv/
+/tgnotify
+/bin/
+.pytest_cache/
+dist/
+python/uv.lock
